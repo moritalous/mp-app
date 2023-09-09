@@ -1,9 +1,11 @@
-import { useEffect, useState } from 'react';
+// https://matterport.github.io/showcase-sdk/sdkbundle_tutorials_models.html
+// https://matterport.github.io/showcase-sdk/sdkbundle_tutorials_using_scene_objects.html
+
+import { useEffect, useRef, useState } from 'react';
 
 import '@matterport/webcomponent';
 
-// matterport-sdk/node_modules/@matterport/webcomponent/types.d.ts
-import { MpSdk } from '../public/bundle/sdk';
+import { MpSdk } from './types/types'
 
 const MP_MODEL = import.meta.env.VITE_MP_MODEL
 const MP_AP_KEY = import.meta.env.VITE_MP_AP_KEY
@@ -44,6 +46,30 @@ function App() {
     }
   }, [x, y, z, isChecked])
 
+  const reqIdRef = useRef<number>(0)
+  const [moveCounter, setMoveCounter] = useState(-1)
+
+  const move = () => {
+    setZ(z + 0.02)
+  }
+
+  function startMove() {
+    setMoveCounter(0)
+  }
+
+  useEffect(() => {
+    if (0 <= moveCounter && moveCounter <= 5000) {
+      reqIdRef.current = requestAnimationFrame(move)
+      setMoveCounter(moveCounter + 1)
+      if (moveCounter > 1000) {
+        setChecked(true)
+      } else {
+        setChecked(false)
+      }
+    } else {
+      cancelAnimationFrame(reqIdRef.current)
+    }
+  }, [moveCounter, x, y, z])
 
   function add() {
     if (mpSdk) {
@@ -123,6 +149,8 @@ function App() {
         <br></br>
         切り替え <input type='checkbox' checked={isChecked} onChange={(e) => setChecked(e.target.checked)}></input>
         <br></br>
+        <button onClick={startMove}>移動開始</button>
+
       </div>
 
     </>
